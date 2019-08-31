@@ -17,7 +17,7 @@ public class SortAlgo {
 	 * @param high    Upper bound of array
 	 * @param comparator Comparator for sorting order
 	 */
-	public static <T> void MergeSort(T array[], int low, int high, Comparator<T> comparator) {
+	public static <T> void MergeSort(T array[], int low, int high, Comparator<? super T> comparator) {
 		if (high <= low)
 			return;
 		int mid = (high + low) / 2;
@@ -39,7 +39,7 @@ public class SortAlgo {
 		MergeSort(array, low, high, Comparator.naturalOrder());
 	}
 
-	private static <T> void merge(T a[], int l, int m, int n, Comparator<T> comp) {
+	private static <T> void merge(T a[], int l, int m, int n, Comparator<? super T> comp) {
 		// Merges given array in sorted order from l to m and m+1 to n
 		int n1 = (m - l) + 1;
 		int n2 = (n - (m + 1)) + 1;
@@ -86,7 +86,7 @@ public class SortAlgo {
 	 * @param high    Upper bound of array
 	 * @param comparator Comparator for sorting order
 	 */
-	public static <T> void QuickSort(T array[], int low, int high, Comparator<T> comparator) {
+	public static <T> void QuickSort(T array[], int low, int high, Comparator<? super T> comparator) {
 		if (high <= low) return;
 		int p = partition(array, low, high, comparator);
 
@@ -106,7 +106,7 @@ public class SortAlgo {
 		QuickSort(array, low, high, Comparator.naturalOrder());
 	}
 
-	private static <T> int partition(T a[], int low, int high, Comparator<T> comp) {
+	private static <T> int partition(T a[], int low, int high, Comparator<? super T> comp) {
 		T pivot = a[high];
 
 		int i = -1;
@@ -130,7 +130,7 @@ public class SortAlgo {
 	 * @param high    Upper bound of array
 	 * @param comparator Comparator for sorting order
 	 */
-	public static <T> void SelectionSort(T array[], int low, int high, Comparator<T> comparator) {
+	public static <T> void SelectionSort(T array[], int low, int high, Comparator<? super T> comparator) {
 		for (int i = low; i < high; i++) {
 			for (int j = i+1; j <= high; j++) {
 				if (comparator.compare(array[i], array[j]) > 0) swap(array, i, j);
@@ -161,7 +161,7 @@ public class SortAlgo {
 	 * @param high    Upper bound of array
 	 * @param comparator Comparator for sorting order
 	 */
-	public static <T> void BubbleSort(T array[], int low, int high, Comparator<T> comparator) {
+	public static <T> void BubbleSort(T array[], int low, int high, Comparator<? super T> comparator) {
 		for (int i = low; i < high; i++) {
 			for (int j = low; j < high-i; j++) {
 				if (comparator.compare(array[j], array[j+1]) > 0) swap(array, j, j+1);
