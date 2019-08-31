@@ -1,7 +1,7 @@
-#Algoritms
-###A collection of algorithms for java
+# Algoritms
+A collection of algorithms for java
 
-##Usage
+## Usage
 Install the project into your local maven repository by running the following root folder of project.
 ```shell
 mvn install
@@ -14,11 +14,11 @@ Add it to your porject dependency by appending this to your pom file.
 </dependency>
 ```
 
-##Algorithms Available: 
-###Searching
+## Algorithms Available: 
+### Searching
 * Linear Search
 * Binary Search
-###Sorting
+### Sorting
 * Selection Sort
 * Bubble Sort
 * Merge Sort
