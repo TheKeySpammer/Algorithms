@@ -2,6 +2,8 @@ package com.tks.general;
 
 import java.util.Comparator;
 
+import com.tks.ds.BinaryHeap;
+
 /**
  * Collections of various sorting algorithms. Contains: MergeSort, QuickSort,
  * SelectionSort, BubbleSort
@@ -152,6 +154,7 @@ public class SortAlgo {
 	}
 
 
+
 	/**
 	 * BubbleSort: Sorts a given array based on the Comparator passed
 	 * 
@@ -180,6 +183,16 @@ public class SortAlgo {
 	 */
 	public static <T extends Comparable<T>> void BubbleSort(T array[], int low, int high) {
 		BubbleSort(array, low, high, Comparator.naturalOrder());
+	}
+
+	public static <T extends Comparable<T>> void HeapSort(T array[], int low, int high) {
+		BinaryHeap<T> bh = new BinaryHeap<>(array.length);
+		for (int i = low; i < high; i++) {
+			bh.add(array[i]);
+		}
+		for (int i = high-1; i >= low; i--) {
+			array[i] = bh.remove();
+		}
 	}
 
 

@@ -77,4 +77,11 @@ class SortAlgoTest {
         });
         assertTrue(com.tks.util.Arrays.isSorted(b));
     }
+
+    @Test
+    void testHeapSort() {
+        Integer a[] = Arrays.copyOf(this.arr, this.arr.length);
+        SortAlgo.HeapSort(a, 0, a.length);
+        assertTrue(com.tks.util.Arrays.isSorted(a), "Heap sort failed");
+    }
 }
