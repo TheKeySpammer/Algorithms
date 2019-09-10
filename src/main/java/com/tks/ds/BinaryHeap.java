@@ -2,18 +2,37 @@ package com.tks.ds;
 
 import java.util.Arrays;
 
+/**
+ * Class to produce Binary Heaps or PriorityQueue
+ * Supported operations:
+ * Addition
+ * Deletion
+ * Replacement
+ * @param <T> Type of data stored in Binary Heap Must be comparable
+ */
 public class BinaryHeap<T extends Comparable<T>> {
     private T heap[];
     private static final boolean DEBUG = false;
+    // Initial Array Size
     private static final int SIZE = 16;
+    // Increment in size after overflow
     private static final int FILL = 10;
+    // Pointer to low index
     private int low;
+    // Pointer to high index
     private int high;
     
+    /**
+     * Creates Binary Heap Of default Size 16
+     */
     public BinaryHeap() {
         this(SIZE);
     }
 
+    /**
+     * Create binary heap of desired capacity
+     * @param capacity Capacity of initial binary heap
+     */
     @SuppressWarnings("unchecked")
     public BinaryHeap(int capacity) {
         this.heap = (T[]) new Comparable[capacity];
@@ -21,29 +40,45 @@ public class BinaryHeap<T extends Comparable<T>> {
         this.high = 0;
     }
     
+    /**
+     * Add an element to the binary heap.
+     * Time complexity: log(n)
+     * @param e Value to be added in binary heap. Must be type compatible. 
+     */
     public void add(T e){
+        // Increase the heap capacity by FILL when overflow
         if (high == this.heap.length) {
             this.increaseCapacity();
         }
         this.heap[this.high] = e;
-        // Heapify
         if (DEBUG)
         System.out.println("Added New Element in "+Arrays.toString(this.heap));
+        
         int parent = this.high == 0 ? 0 : (this.high - 1) / 2;
         int child = this.high;
+        
         if(DEBUG) {
             System.out.println("Heapifying");
             System.out.println("Init Parent: "+parent);
             System.out.println("Init Child: "+child);
         }
+        
+        // Keep swapping parent and child till heapified.
         while (parent != child && this.heap[parent].compareTo(this.heap[child]) < 0) {
             swap(parent, child);
             child = parent;
             parent = child == 0 ? 0 : (child - 1) / 2;
         }
+        // Increment Heap size by 1
         this.high++;
     }
     
+    /**
+     * Removes the root element of the binary heap. 
+     * Decreases the size of binary heap by 1.
+     * @return Root element. Highest or lowest value
+     * @throws IndexOutOfBoundsException Exception when value is removed from an empty heap.
+     */
     public T remove()throws IndexOutOfBoundsException {
         if (high == low) throw new IndexOutOfBoundsException();
         T max = this.heap[this.low];
@@ -53,13 +88,22 @@ public class BinaryHeap<T extends Comparable<T>> {
         return max;
     }
     
+    /**
+     * Replaces an already existing vlaue in the heap with a new value. 
+     * Time complexity: log(n)
+     * Heapifies child and all parents
+     * @param val New value to be replced which is type compatible
+     * @param index Index At whcih the value is to be replaced
+     * @return Original value which is now replaced.
+     * @throws IndexOutOfBoundsException Exception when index is out of heap size.
+     */
     public T replace(T val, int index)throws IndexOutOfBoundsException {
         if (index == this.high) throw new IndexOutOfBoundsException(); 
         T replaced = this.heap[index];
         this.heap[index] = val;
         // Heapify Child
         this.heapify(index);
-        // Heapify parent
+        // Heapify parent till all parents are heapified
         int parent = index == 0 ? 0: (index - 1)/2;
         int child = index;
         while (parent != child && this.heap[parent].compareTo(this.heap[child]) < 0) {
@@ -70,12 +114,37 @@ public class BinaryHeap<T extends Comparable<T>> {
         return replaced;
     }
     
+    /**
+     * Checks if heap is empty
+     */
     public boolean isEmpty() {
         return this.high == this.low;
     }
 
+    /**
+     * Returns the current number of nodes in heap
+     * @return Size of the heap.
+     */
     public int size() {
         return this.high - this.low;
+    }
+
+    /**
+     * Static factory funtion to contruct a BinaryHeap from an array
+     * @param <E> Type of BinaryHeap elements which are Comparable
+     * @param array Array from which BinaryHeap will be formed
+     * @return Returns the replaced value
+     */
+    public static <E extends Comparable<E>> BinaryHeap<E> fromArray(E array[]) {
+        BinaryHeap<E> bh = new BinaryHeap<>(array.length);
+        for (int i = 0; i < array.length; i++) {
+            bh.heap[i] = array[i];
+        }
+        bh.high = bh.heap.length;
+        for (int i = (bh.heap.length / 2)-1; i >= 0; i--) {
+            bh.heapify(i);
+        }
+        return bh;
     }
 
     @Override
@@ -124,6 +193,10 @@ public class BinaryHeap<T extends Comparable<T>> {
 
     }
 
+    /**
+     * For Testing. 
+     * Validity check that the current heap is a heap or not
+     */
     public boolean isHeap() {
         for (int i = this.low; i < this.high; i++) {
             if (!isHeap(i)) {

@@ -58,4 +58,14 @@ class BinHeapTest {
             assertTrue(bh.isHeap(), "Binary Heap not a heap after replacing "+val+" at index "+index+" on "+i+"th attempt. Replaced Value "+replaced);
         }
     }
+
+    @Test
+    void testHeapFromArray() {
+        Integer arr[] = new Integer[100];
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = (int)(Math.random() * 9999 + 1);
+        }
+        BinaryHeap<Integer> bh = BinaryHeap.fromArray(arr);
+        assertTrue(bh.isHeap(), "BinaryHeap from array failed");
+    }
 }
