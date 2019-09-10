@@ -62,9 +62,6 @@ public class BinaryHeap<T extends Comparable<T>> {
         // Heapify parent
         int parent = index == 0 ? 0: (index - 1)/2;
         int child = index;
-        if (child == 0) {
-            heapify(parent);
-        }
         while (parent != child && this.heap[parent].compareTo(this.heap[child]) < 0) {
             heapify(parent);
             child = parent;
