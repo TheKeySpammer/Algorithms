@@ -174,7 +174,7 @@ public class SortAlgo {
 
 
 	/**
-	 * BubbleSort: Sorts a given arrays based on Natural Order
+	 * BubbleSort: Sorts a given array based on Natural Order
 	 * 
 	 * @param <T> Type of array to be sorted must be Comparable
 	 * @param array   Array to be sorted
@@ -185,11 +185,16 @@ public class SortAlgo {
 		BubbleSort(array, low, high, Comparator.naturalOrder());
 	}
 
+	/**
+	 * HeapSort: Sorts a given array based on Natural order
+	 * TimeComplexity: O(log(n))
+	 * @param <T> Type of array, must be Comparable
+	 * @param array The array to be sorted
+	 * @param low The lower index of the array
+	 * @param high The higher index of the array.
+	 */
 	public static <T extends Comparable<T>> void HeapSort(T array[], int low, int high) {
-		BinaryHeap<T> bh = new BinaryHeap<>(array.length);
-		for (int i = low; i < high; i++) {
-			bh.add(array[i]);
-		}
+		BinaryHeap<T> bh = BinaryHeap.fromArray(array);
 		for (int i = high-1; i >= low; i--) {
 			array[i] = bh.remove();
 		}
