@@ -1,4 +1,4 @@
-# Algoritms
+# Algorithms
 A collection of algorithms for java
 
 ## Usage
