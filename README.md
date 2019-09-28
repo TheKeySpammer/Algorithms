@@ -46,4 +46,10 @@ Add it to your porject dependency by appending this to your pom file.
     * Depth First Search in graph
     * Kruskal's Minimum spanning tree
     * Prim's Minimum spanning tree
+* UnionFind:
+    * Provides disjoint set data structure and allows Union and find operations on them.
+    * Used in cycle detection
+ 
+      
+ 
 

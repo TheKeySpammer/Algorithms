@@ -1,26 +1,43 @@
 package com.tks.ds;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import java.io.*;
 
+
+// TODO: Make graph generic (Vertex can be generic)
+/**
+ * Adjacency list representation of Graph using TreeMap data structure
+ * The Edges are stored in LinkedList {@link TreeMap} with key as the root vertex<br/>
+ * Graph provides following algorithms
+ * <ul>
+ *     <li>Pure Graph creation (graph with no parallel edges and no loops)</li>
+ *     <li>Depth First Search</li>
+ *     <li>Kruskal's Minimum spanning tree</li>
+ *     <li>Prim's Minimum spanning tree</li>
+ * </ul>
+ * @author Aamir Mushtaq Siddiqui
+ * @version JDK 1.8
+ */
 public class Graph {
 
+//    Use this variable to toggle DEBUG log
+//    TODO: Use a logger to DEBUG log
     private static final boolean DEBUG = true;
 
     TreeMap<Integer, LinkedList<Edge>> graph;
 
+    /**
+     * Constructor that initializes new empty Adjacency List
+     */
     Graph() {
         this.graph = new TreeMap<>();
     }
 
+    /**
+     * Constructor that Makes a deep copy of another graph
+     * @param gh The graph to make a deep copy of
+     */
     Graph(Graph gh) {
         this.graph = new TreeMap<>();
         for (Map.Entry<Integer, LinkedList<Edge>> entry : gh.graph.entrySet()) {
@@ -29,16 +46,24 @@ public class Graph {
             for (Edge edge : ll) {
                 copy.add(new Edge(edge));
             }
-            this.graph.put((int)entry.getKey(), copy);
+            this.graph.put(entry.getKey(), copy);
         }
     }
 
+    /**
+     * Edge is a connection between two vertex having a weight
+     * Edge can be bidirectional or unidirectional
+     */
     static class Edge implements Comparable<Edge> {
         private int from;
         private int to;
         private int weight;
         private boolean bi;
 
+        /**
+         * Creates a bidirectional edge with 0 weight and no initial vertex
+         * @param to The final vertex to which edge meets
+         */
         Edge(int to) {
             this.to = to;
             this.from = 0;
@@ -46,28 +71,57 @@ public class Graph {
             this.bi = true;
         }
 
+        /**
+         * Creates a bidirectional edge with 0 weight
+         * @param to The final vertex to which edge meets
+         * @param from Initial vertex from which edge starts
+         */
         Edge(int to, int from) {
             this(to);
             this.from = from;
         }
 
+        /**
+         * Creates a bidirectional edge from given parameters
+         * @param to The final vertex to which edge meets
+         * @param from Initial vertex from which edge starts
+         * @param weight Weight of the edge
+         */
         Edge(int to, int from, int weight) {
             this(to, from);
             this.weight = weight;
         }
 
+        /**
+         * Creates an edge with given parameters
+         * @param to The final vertex to which edge meets
+         * @param from Initial vertex from which edge starts
+         * @param weight Weight of the edge
+         * @param bi Bidirectional edge or not
+         */
         Edge(int to, int from, int weight, boolean bi) {
             this(to, from ,weight);
             this.bi = bi;
         }
 
+        /**
+         * Instantiate an edge as deep of another edge
+         * @param edge The edge whose copy is to be instantiated
+         */
         Edge (Edge edge) {
             this.to = edge.to;
             this.weight = edge.weight;
             this.from = edge.from;
             this.bi = edge.bi;
-        } 
+        }
 
+        /**
+         * Compares edge weight first then check if they are in same direction then
+         * if edge is bidirectional, if it is then checks if the reverse edges are same
+         * @param edge The edge to be compared with
+         * @return difference of edge weight if difference is 0 then returns 0 if edge
+         * directions are same else 1
+         */
         @Override
         public int compareTo(Edge edge) {
             if (this.weight != edge.weight) {
@@ -85,36 +139,50 @@ public class Graph {
             }
         }
 
+        /**
+         * Creates a new instance of given edge that exchanged from and to vertex
+         * @return Returns a new instance of Edge with reverse direction
+         */
         public Edge getReverse() {
-            Edge rev = new Edge(this.from, this.to, this.weight);
-            return rev;
+            return new Edge(this.from, this.to, this.weight);
         }
 
+        /**
+         * Checks if the current edge is parallel to other edge
+         * @param other the edge with which the comparison is to be made
+         * @return Boolean of the equality of from and to of both edges
+         */
         public boolean isParallel(Edge other) {
             return (this.from == other.from && this.to == other.to);
         }
 
+        /**
+         * Checks if an edge is a loop, i.e. if from == to
+         * @return Boolean of equality of from and to of this edge
+         */
         public boolean isLoop() {
             return this.from == this.to;
         }
 
+        /**
+         * @see #getComparator()
+         * @return Comparator of type edge
+         */
         public static Comparator<Edge> getComparator() {
-            return new Comparator<Edge>() {
-                @Override
-                public int compare(Edge edge1, Edge edge2) {
-                    if (edge1.weight != edge2.weight) {
-                        return edge1.weight - edge2.weight;
-                    } else {
-                        if (edge1.from == edge2.to && edge1.to == edge2.from) {
-                            return 0;
-                        }
-                        if ((edge1.bi || edge2.bi) && edge1.from == edge2.to && edge1.to == edge2.from) {
-                            return 0;
-                        }
-                        return 1;
+            return (edge1, edge2) -> {
+                if (edge1.weight != edge2.weight) {
+                    return edge1.weight - edge2.weight;
+                } else {
+                    if (edge1.from == edge2.from && edge1.to == edge2.to) {
+                        return 0;
                     }
+                    if ((edge1.bi || edge2.bi) && edge1.from == edge2.to && edge1.to == edge2.from) {
+                        return 0;
+                    }
+                    return 1;
                 }
             };
+
         }
 
 
@@ -148,6 +216,18 @@ public class Graph {
         }
     }
 
+    /**
+     * Instantiates a graph from data in a file
+     * Data in the file should be formatted as follow
+     * VERTEXroot1  VERTEXchild1,WEIGHT VERTEXchild2,WEIGHT ...
+     * .
+     * .
+     * @param filename the filename from which data is to fetched
+     *                 NOTE: Must be relative to the location from where the
+     *                 program is ran
+     * @return Graph instantiated from the data entered in file
+     * @throws IOException FileNotFound and other IO related exception
+     */
     public static Graph fromFile(String filename) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
         Graph gh = new Graph();
@@ -168,16 +248,23 @@ public class Graph {
         return gh;
     }
 
+    /**
+     * Creates a new instance of a graph containing a deep copy of all the vertex
+     * and edges of original graph except <strong>Loops</strong> and <strong>Parallel edges</strong>
+     * @return New Instance of graph deep copy of current graph without loop and parallel edges
+     */
     public Graph makePureGraph() {
         Graph gh = new Graph(this);
         for (Map.Entry<Integer, LinkedList<Edge>> entry : gh.graph.entrySet()) {
             LinkedList<Edge> edges = entry.getValue();
             LinkedList<Edge> toRemove = new LinkedList<>();
             for (int i = 0; i < edges.size(); i++) {
+//                Remove Loops
                 if (edges.get(i).isLoop()) {
                     toRemove.add(edges.get(i));
                     continue;
                 }
+//                Remove parallel edges
                 Edge edgeA = edges.get(i);
                 for (int j = i + 1; j < edges.size(); j++) {
                     Edge edgeB = edges.get(j);
@@ -191,6 +278,9 @@ public class Graph {
         return gh;
     }
 
+    /**
+     * Prints the graph to Standard output in Adjacency List style
+     */
     public void printGraph() {
         for (Map.Entry<Integer, LinkedList<Edge>> entry : graph.entrySet()) {
             System.out.print(entry.getKey() + ": ");
@@ -201,6 +291,12 @@ public class Graph {
         }
     }
 
+    /**
+     * Creates an ArrayList of vertex contained in Depth First Search traversal order
+     * @param start The starting vertex from which DFS starts
+     * @return ArrayList of Integers containing vertex in DFS,
+     *         If start vertex is not in graph returns empty ArrayList
+     */
     public ArrayList<Integer> DFS(int start) {
         ArrayList<Integer> path = new ArrayList<>();
         boolean[] visited = new boolean[this.graph.size()];
@@ -221,6 +317,17 @@ public class Graph {
         }
     }
 
+    /**
+     * Generates A Minimum Spanning Tree of current graph.
+     * The generated minimum spanning tree is a new instance of graph containing only edges required in
+     * minimum spanning tree.
+     * Stores all the edges in a TreeSet and iterates over them thus retrieving them in sorted order
+     * Uses greedy approach to include all the minimum edges till all vertex are covered.
+     * That is till number of edges = number of vertex - 1.
+     * Uses UnionFind algorithm to detect cycles {@link UnionFind}.
+     * @return  A new instance of Graph containing Minimum Spanning Tree of invoking graph
+     * @see TreeSet
+     */
     public Graph kruskalMST() {
 
         if (DEBUG) {
@@ -229,7 +336,7 @@ public class Graph {
         }
         Graph gh = new Graph();
         for (int key : this.graph.keySet()) {
-            gh.graph.put(key, new LinkedList<Edge>());
+            gh.graph.put(key, new LinkedList<>());
         }
 
         TreeSet<Edge> ts = new TreeSet<>(Edge.getComparator());
@@ -251,7 +358,7 @@ public class Graph {
         if (DEBUG) {
             System.out.printf("VertexCount: %d\nPadding: %d\n", vertexCount, padding);
             System.out.println("Initial UF: ");
-            System.out.println(Arrays.toString(uf.parent));
+            System.out.println(Arrays.toString(uf.getParent()));
         }
         for (Edge edge : ts) {
             if (edgeCount == vertexCount - 1) break;
@@ -266,14 +373,13 @@ public class Graph {
                 if (DEBUG) {
                     System.out.println("Adding edge " + edge);
                     System.out.println("Current Edge Count " + edgeCount);
-                    System.out.println("Union Find set: " + Arrays.toString(uf.parent));
+                    System.out.println("Union Find set: " + Arrays.toString(uf.getParent()));
                 }
             } catch (Exception ex) {
                 // Skip edge that causes cycle
                 if (DEBUG) {
                     System.out.println("Edge: " + edge + " makes a cycle");
                 }
-                continue;
             }
         }
 
@@ -290,6 +396,17 @@ public class Graph {
         return gh;
     }
 
+
+    /**
+     * Creates a Minimum Spanning Tree using Prim's Algorithm.
+     * Creates a new Instance of Graph containing only edges of original Graph which forms minimum spanning tree.
+     * Algorithm starts by first getting a pure graph {@link #makePureGraph()}.
+     * Then it starts from first vertex.
+     * Uses PriorityQueue {@link PriorityQueue} to store Standing edges.
+     * Keep adding vertex and smallest edge from Standing edges till all vertex are covered
+     * Also keep removing edges from the temporary instance of Current graph generated above.
+     * @return A new instance of graph containing Minimum Spanning Tree
+     */
     public Graph primsMst() {
 
         if (DEBUG) {
@@ -300,36 +417,30 @@ public class Graph {
 //        Remove all the loops and parellel edges
         Graph pg = this.makePureGraph();
 //      Keep a set of Standing Edges
-        TreeSet<Edge> stnd = new TreeSet<>(Edge.getComparator());
+        PriorityQueue<Edge> stnd = new PriorityQueue<>(Edge.getComparator());
         int numberOfnodes = pg.graph.size();
         if (DEBUG) {
             System.out.println("Number of nodes: "+numberOfnodes);
         }
-        // Initialy put first vertex
-        gh.graph.put(pg.graph.firstKey(), new LinkedList<Edge>());
-        for (Edge edge : pg.graph.firstEntry().getValue()) {
-            stnd.add(edge);
-        }
+        // Initially put first vertex
+        gh.graph.put(pg.graph.firstKey(), new LinkedList<>());
+        stnd.addAll(pg.graph.firstEntry().getValue());
         
         if (DEBUG)
             System.out.println("Initially Standing edges: "+stnd);
         
         while (stnd.size() > 0 && gh.graph.size() < numberOfnodes) {
             // While removing is possible and loops are formed
-            Edge smallest = stnd.first();
-            Edge copyOfSmall = new Edge(smallest);
-            stnd.removeIf(e -> e.compareTo(copyOfSmall) == 0);
-            
+            Edge smallest = stnd.remove();
+
             if (DEBUG)
                 System.out.println("Current smallest Edge: "+smallest);
 
             while (stnd.size() > 0 && gh.graph.containsKey(smallest.to)) {                
                 if (DEBUG)
                     System.out.println("Since cycle is formed finding new smallest");
-                smallest = stnd.first();
-                Edge copyOfSmall2 = new Edge(smallest);
-                stnd.removeIf(e -> e.compareTo(copyOfSmall2) == 0);
-            
+                smallest = stnd.remove();
+
                 if (DEBUG)
                     System.out.println("Current Smallest Edge: "+smallest);
             }
@@ -356,9 +467,7 @@ public class Graph {
             }
 
             // Update standing with edges of the new node
-            for (Edge edge : pg.graph.get(smallest.to)) {
-                stnd.add(edge);
-            }
+            stnd.addAll(pg.graph.get(smallest.to));
             if (DEBUG) {
                 System.out.println("Current Standing: "+stnd);
             }
@@ -381,59 +490,4 @@ public class Graph {
         return new Edge(to, 0, weight);
     }
 
-    static class UnionFind {
-        private int[] parent;
-        private int[] rank;
-
-        UnionFind(int n) {
-            this.parent = new int[n];
-            this.rank = new int[n];
-            makeSet();
-        }
-
-        private void makeSet() {
-            for (int i = 0; i < this.parent.length; i++) {
-                this.parent[i] = i;
-            }
-        }
-
-        int find(int i) {
-            if (this.parent[i] != i) {
-                this.parent[i] = find(this.parent[i]);
-            }
-            return this.parent[i];
-        }
-
-        int findWithoutCache(int i) {
-            if (this.parent[i] == i) return i;
-            return findWithoutCache(this.parent[i]);
-        }
-
-        private boolean checkIfsameParent(int i, int j) {
-            return findWithoutCache(i) == findWithoutCache(j);
-        }
-
-        void union(int i, int j) throws ExceptionCycleCheck {
-            if (checkIfsameParent(i, j)) throw new ExceptionCycleCheck();
-            int xroot = find(i), yroot = find(j);
-            if (xroot == yroot) return;
-
-            if (this.rank[xroot] < this.rank[yroot]) {
-                this.parent[xroot] = yroot;
-            } else if (this.rank[xroot] > this.rank[yroot]) {
-                this.parent[yroot] = xroot;
-            } else {
-                this.parent[yroot] = xroot;
-                this.rank[xroot]++;
-            }
-        }
-
-        class ExceptionCycleCheck extends Exception {
-            private static final long serialVersionUID = 1L;
-
-            ExceptionCycleCheck() {
-                super("Cycle deteceted");
-            }
-        }
-    }
 }
