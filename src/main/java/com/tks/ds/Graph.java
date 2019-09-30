@@ -23,7 +23,7 @@ public class Graph {
 
 //    Use this variable to toggle DEBUG log
 //    TODO: Use a logger to DEBUG log
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     TreeMap<Integer, LinkedList<Edge>> graph;
 
@@ -480,6 +480,133 @@ public class Graph {
         return gh;
     }
 
+    /**
+     * Dijkstra's Algorithm to find minimum path from a start vertex.
+     * This function introduces a new class Vertex which stores vertex data and total cost to reach that vertex
+     * and parent of the vertex.
+     * It first stores the generated path in a temporary ArrayList from which it Generates a doubly sided graph.
+     * All the working of this function can be seen when DEBUG is on.
+     * @param start The starting vertex.
+     * @return  A new instance of Graph which contains all the edges which comprise a shortest path from start
+     * to all other vertex.
+     */
+    public Graph dijkstra(int start) {
+//        Finds dijkstra's shortest path from a start vertex and returns a graph containing the route
+//        Entry in priority queue
+        class Vertex{
+            int weight;
+            int parent;
+            int vertex;
+            Vertex(int vertex, int weight, int parent) {
+                this.weight = weight;
+                this.parent = parent;
+                this.vertex = vertex;
+            }
+
+            @Override
+            public String toString() {
+                String wg = Integer.toString(weight);
+                if (weight == Integer.MAX_VALUE) {
+                    wg = "INF";
+                }
+                return vertex+" <-- "+wg+" -- "+parent;
+            }
+
+        }
+        if (!this.graph.containsKey(start)){
+            return null;
+        }
+
+//        Get a temporary pure graph
+        Graph minPath = this.makePureGraph();
+
+//        Initialize a priority queue with INF values and no parents
+        PriorityQueue<Vertex> pq = new PriorityQueue<>(Comparator.comparingInt(vertex -> vertex.weight));
+        for (int node :
+                minPath.graph.keySet()) {
+            int weight = Integer.MAX_VALUE;
+            if (node == start) {
+                weight = 0;
+            }
+            pq.add(new Vertex(node, weight, -1));
+        }
+
+        if (DEBUG) {
+            System.out.println("Initial priority queue");
+            pq.forEach(System.out::println);
+        }
+
+//        A stack to store the paths
+        ArrayList<Vertex> path = new ArrayList<>();
+//        Remove lowest and update weight and parent of each adjacent vertex
+        while (pq.size() > 0 && pq.peek().weight < Integer.MAX_VALUE) {
+
+//            Get min vertex and all its adjacent edges
+            Vertex min = pq.remove();
+            path.add(min);
+            LinkedList<Edge> edges = minPath.graph.get(min.vertex);
+
+            if (DEBUG) {
+                System.out.println();
+                System.out.println("Current minimum vertex: "+min);
+                System.out.println("Edges of min: "+edges);
+                System.out.println();
+            }
+
+            for (Edge edge : edges) {
+                for (Vertex vertex : pq) {
+//                    Find adjacent vertex in priority queue and update there data
+                    if (vertex.vertex == edge.to) {
+
+                        if (DEBUG) {
+                            System.out.println("Checking vertex: "+vertex);
+                        }
+
+                        if (vertex.weight > edge.weight) {
+//                            Update if a shorter path exists
+                            if (vertex.weight > edge.weight + min.weight) {
+//                                Update Priority Queue
+                                pq.removeIf(v -> v.vertex == vertex.vertex);
+                                pq.add(new Vertex(vertex.vertex, edge.weight + min.weight, min.vertex));
+
+                                if(DEBUG) {
+                                    System.out.println("Check true");
+                                    System.out.println("Updated Vertex weight: "+(edge.weight + min.weight));
+                                    System.out.println();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+
+//        Dijkstra completed now Make graph according to path
+        for (Vertex vertex : path) {
+            int child  = vertex.vertex;
+            int parent = vertex.parent;
+//            Remove parent
+            LinkedList<Edge> ll = minPath.graph.get(child);
+            ll.removeIf(edge -> edge.to != parent);
+        }
+
+
+//        Make bidirectional
+        for (Map.Entry<Integer, LinkedList<Edge>> entry:
+            minPath.graph.entrySet()){
+            LinkedList<Edge> edges = entry.getValue();
+            for (Edge edge : edges) {
+                LinkedList<Edge> child = minPath.graph.get(edge.to);
+                Edge rev = edge.getReverse();
+                if (child.stream().noneMatch(e -> e.from == rev.from && e.to == rev.to)) {
+                    child.add(rev);
+                }
+            }
+        }
+        return minPath;
+    }
 
     private static Edge processEdge(String rawEdge) {
         int to = 0, weight = 0;
