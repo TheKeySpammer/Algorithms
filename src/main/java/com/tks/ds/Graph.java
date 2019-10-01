@@ -25,12 +25,12 @@ public class Graph {
 //    TODO: Use a logger to DEBUG log
     private static final boolean DEBUG = false;
 
-    TreeMap<Integer, LinkedList<Edge>> graph;
+    public TreeMap<Integer, LinkedList<Edge>> graph;
 
     /**
      * Constructor that initializes new empty Adjacency List
      */
-    Graph() {
+    public Graph() {
         this.graph = new TreeMap<>();
     }
 
@@ -38,7 +38,7 @@ public class Graph {
      * Constructor that Makes a deep copy of another graph
      * @param gh The graph to make a deep copy of
      */
-    Graph(Graph gh) {
+    public Graph(Graph gh) {
         this.graph = new TreeMap<>();
         for (Map.Entry<Integer, LinkedList<Edge>> entry : gh.graph.entrySet()) {
             LinkedList<Edge> ll = entry.getValue();
@@ -54,7 +54,7 @@ public class Graph {
      * Edge is a connection between two vertex having a weight
      * Edge can be bidirectional or unidirectional
      */
-    static class Edge implements Comparable<Edge> {
+    public static class Edge implements Comparable<Edge> {
         private int from;
         private int to;
         private int weight;
@@ -64,7 +64,7 @@ public class Graph {
          * Creates a bidirectional edge with 0 weight and no initial vertex
          * @param to The final vertex to which edge meets
          */
-        Edge(int to) {
+        public Edge(int to) {
             this.to = to;
             this.from = 0;
             this.weight = 0;
@@ -76,7 +76,7 @@ public class Graph {
          * @param to The final vertex to which edge meets
          * @param from Initial vertex from which edge starts
          */
-        Edge(int to, int from) {
+        public Edge(int to, int from) {
             this(to);
             this.from = from;
         }
@@ -87,7 +87,7 @@ public class Graph {
          * @param from Initial vertex from which edge starts
          * @param weight Weight of the edge
          */
-        Edge(int to, int from, int weight) {
+        public Edge(int to, int from, int weight) {
             this(to, from);
             this.weight = weight;
         }
@@ -99,7 +99,7 @@ public class Graph {
          * @param weight Weight of the edge
          * @param bi Bidirectional edge or not
          */
-        Edge(int to, int from, int weight, boolean bi) {
+        public Edge(int to, int from, int weight, boolean bi) {
             this(to, from ,weight);
             this.bi = bi;
         }
@@ -108,7 +108,7 @@ public class Graph {
          * Instantiate an edge as deep of another edge
          * @param edge The edge whose copy is to be instantiated
          */
-        Edge (Edge edge) {
+        public Edge (Edge edge) {
             this.to = edge.to;
             this.weight = edge.weight;
             this.from = edge.from;
@@ -131,7 +131,7 @@ public class Graph {
                 if (this.from == edge.from && this.to == edge.to) {
                     return 0;
                 }
-                // Ceck if reverse direction edge are same
+                // Check if reverse direction edge are same
                 if (this.bi && this.from == edge.to && this.to == edge.from) {
                     return 0;
                 }
@@ -494,10 +494,11 @@ public class Graph {
 //        Finds dijkstra's shortest path from a start vertex and returns a graph containing the route
 //        Entry in priority queue
         class Vertex{
-            int weight;
-            int parent;
-            int vertex;
-            Vertex(int vertex, int weight, int parent) {
+            private int weight;
+            private int parent;
+            private int vertex;
+
+            private Vertex(int vertex, int weight, int parent) {
                 this.weight = weight;
                 this.parent = parent;
                 this.vertex = vertex;
@@ -580,8 +581,8 @@ public class Graph {
                     }
                 }
             }
-
         }
+
 
 //        Dijkstra completed now Make graph according to path
         for (Vertex vertex : path) {
@@ -606,6 +607,78 @@ public class Graph {
             }
         }
         return minPath;
+    }
+
+    /**
+     * Bellman Ford Algorithm. Finds shortest path to all other vertex from a given vertex.
+     * Brute Forces all edges, |V| - 1 times and relax them.
+     * It can also detect if an edge has a negative weight. If any vertex can be relaxed even after
+     * brute force then a negative edge is present.
+     * @param start The starting vertex from which shortest path is to be generated
+     * @return A new instance of a graph containing the shortest path from start
+     * @throws ExceptionContainsNegativeWeight thrown when a negative weight cycle is detected
+     */
+    public Graph bellmanFord(int start) throws ExceptionContainsNegativeWeight{
+        Graph gh = this.makePureGraph();
+        int n = gh.graph.lastKey() - gh.graph.firstKey() + 1;
+        int[] d= new int[n];
+        int[] prev = new int[n];
+//        Make a set of all edges
+        Set<Edge> edgeSet = new HashSet<>();
+        for (Map.Entry<Integer, LinkedList<Edge>> entry : gh.graph.entrySet()) {
+            edgeSet.addAll(entry.getValue());
+        }
+        for (int vertex :
+                gh.graph.keySet()) {
+            int w = Integer.MAX_VALUE;
+            if (vertex == start) {
+                w = 0;
+            }
+            d[vertex-1] = w;
+            prev[vertex-1] = -1;
+        }
+        for (int i = 1; i < n; i++) {
+            edgeSet.forEach(edge -> {
+                int temp = d[edge.from - 1] + edge.weight;
+                if (d[edge.from - 1] == Integer.MAX_VALUE) {
+                    temp = Integer.MAX_VALUE;
+                }
+                if (d[edge.to - 1] > temp) {
+                    d[edge.to - 1] = temp;
+                    prev[edge.to - 1] = edge.from;
+                }
+            });
+        }
+//        Relax all edges one more time
+        for (Edge edge : edgeSet) {
+            int temp = d[edge.from - 1] + edge.weight;
+            if (d[edge.from - 1] == Integer.MAX_VALUE) {
+                temp = Integer.MAX_VALUE;
+            }
+            if (d[edge.to - 1] > temp) {
+                throw new ExceptionContainsNegativeWeight();
+            }
+        }
+//        Convert prev data to Graph and return
+        for (int i = 1; i <= n; i++) {
+            int parent = prev[i-1];
+            LinkedList<Edge> ll = gh.graph.get(i);
+            ll.removeIf(edge -> edge.to != parent);
+        }
+
+        //        Make bidirectional
+        for (Map.Entry<Integer, LinkedList<Edge>> entry:
+                gh.graph.entrySet()){
+            LinkedList<Edge> edges = entry.getValue();
+            for (Edge edge : edges) {
+                LinkedList<Edge> child = gh.graph.get(edge.to);
+                Edge rev = edge.getReverse();
+                if (child.stream().noneMatch(e -> e.from == rev.from && e.to == rev.to)) {
+                    child.add(rev);
+                }
+            }
+        }
+        return gh;
     }
 
     private static Edge processEdge(String rawEdge) {
